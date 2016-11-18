@@ -1,0 +1,197 @@
+<imports >
+    <link rel="import" href="../polymer/polymer.html">
+    <link rel="import" href="../app-route/app-route.html" async>
+    <link rel="import" href="../neon-animation/neon-animation-runner-behavior.html">
+    <link rel="import" href="../neon-animation/neon-animations.html">
+    <link rel="import" href="../paper-material/paper-material.html" async>
+    <link rel="import" href="../local-dom/local-dom.html">
+    <link rel="import" href="./position-css.html">
+</imports>
+<!--
+
+Shows drop down menu (works on chrome)
+
+### Usage
+The list displayed in the drop down menu can be set as an attribute.
+
+    <drop-menu list-items='["first" ,"second"]'></drop-menu>
+
+For an overlayed drop menu:
+
+    <drop-menu overlay-menu list-items='["first" ,"second"]'></drop-menu>
+
+### Styling
+ Custom property | Description | Default
+----------------|-------------|----------
+`--item-background-color` | List item backround color | `#f1ecef`
+`--item-color` | List item color used for fonts | `#302f31`
+`--close-color` | Icon button hover color | `4775D1`
+`--content-background` | Drop menu's background color | `white`
+`--close-color` | Icon button hover color | `4775D1`
+`--icon-button` | Mixin applied the icon button | `{}`
+
+@demo demo/drop-menu-demo.html
+-->
+<dom-module id="view-layout">
+    <template>
+        <style include="position-css"></style>
+        <style>
+            :host {
+                --height: 65%;
+                --width: 35%;
+                --margin-left: 30%;
+                --margin-right: 0;
+            }
+            local-dom {
+                height: 100%;
+                width: 100%;
+            }
+            paper-material {
+                height: var(--height);
+                width: var(--width);
+                margin-left: var(--margin-left);
+                margin-right: var(--margin-right);
+                background-color: var(--content-background);
+                overflow: hidden;
+            }
+            div[closePage] {
+                height: 100%;
+                width: 100%;
+                background-color: var(--content-background);
+                opacity: 0.6;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            [laptop] paper-material {
+                border-radius: 4px;
+            }
+            [mobile] [container],
+            [tablet] [container] {
+                width: 100%;
+                height: 100%;
+                margin-left: 0;
+                margin-right: 0;
+                border-radius: 0;
+            }
+        </style>
+        <!-- local DOM -->
+        <app-route route="{{route}}" pattern="/:view" data="{{routeData}}" tail="{{subroute}}" query-params="{{queryParams}}"></app-route>
+        <local-dom mobile="{{mobile}}" tablet="{{tablet}}" laptop="{{laptop}}" class$={{position}}>
+            <div closePage on-click="_exit"></div>
+            <paper-material container elevation="4">
+                <content ></content>
+            </paper-material>
+        </local-dom>
+    </template>
+    <script>
+        Polymer({
+            is: "view-layout",
+            observers: [],
+            behaviors: [Polymer.NeonAnimationRunnerBehavior],
+            properties: {
+                height: {
+                    type: String
+                },
+                width: {
+                    type: String
+                },
+                exitUrl: {
+                    type: String,
+                    value: "test"
+                },
+                closing:{
+                    type:Boolean,
+                    value:false
+                },
+                animationConfig: {
+                    value: function () {
+                        return {
+                            'entry': [
+                                {
+                                    name: 'slide-from-top-animation',
+                                    node: this.$$('paper-material[container]'),
+                                    timing: {
+                                        duration: 500
+                                    }
+                                }
+                            ],
+                            'exit': [
+                                {
+                                    name: 'fade-out-animation',
+                                    node: this
+                                }, {
+                                    name: 'slide-up-animation',
+                                    node: this.$$('paper-material[container]'),
+                                    timing: {
+                                        duration: 400
+                                    }
+                                }
+                            ]
+                        };
+                    }
+                }
+            },
+            _exit: function () {
+                this.set('route.path', this.exitUrl);
+                this.queryParams={} ;
+            },
+            ready: function () {
+                Polymer.RenderStatus.afterNextRender(this, function () {
+                    this.listen(this, 'close', '_exit');
+                    this.customStyle['--height'] = this.height;
+                    this.customStyle['--width'] = this.width;
+                    if (this.position === 'top-right') {
+                        this.customStyle['--margin-left'] = '35%';
+                        this.customStyle['--margin-right'] = '0%';
+                        this.animationConfig.entry[0].name = 'slide-from-top-animation';
+                        this.animationConfig.exit[1].name = 'slide-up-animation';
+                    }
+                    if (this.position === 'top') {
+                        this.customStyle['--margin-left'] = '0%';
+                        this.customStyle['--margin-right'] = '0%';
+                        this.animationConfig.entry[0].name = 'slide-from-top-animation';
+                        this.animationConfig.exit[1].name = 'slide-up-animation';
+                    }
+                    if (this.position === 'top-left') {
+                        this.customStyle['--margin-left'] = '0%';
+                        this.customStyle['--margin-right'] = '40%';
+                        this.animationConfig.entry[0].name = 'slide-from-top-animation';
+                        this.animationConfig.exit[1].name = 'slide-up-animation';
+                    }
+                    if (this.position === 'left') {
+                        this.customStyle['--margin-left'] = '0%';
+                        this.customStyle['--margin-right'] = '0%';
+                        this.animationConfig.entry[0].name = 'slide-from-left-animation';
+                        this.animationConfig.exit[1].name = 'slide-left-animation';
+                    }
+                    if (this.position === 'bottom-left') {
+                        this.customStyle['--margin-left'] = '0%';
+                        this.customStyle['--margin-right'] = '40%';
+                        this.animationConfig.entry[0].name = 'slide-from-bottom-animation';
+                        this.animationConfig.exit[1].name = 'slide-down-animation';
+                    }
+                    if (this.position === 'bottom') {
+                        this.customStyle['--margin-left'] = '0%';
+                        this.customStyle['--margin-right'] = '0%';
+                        this.animationConfig.entry[0].name = 'scale-up-animation';
+                        this.animationConfig.exit[1].name = 'scale-down-animation';
+                    }
+                    if (this.position === 'bottom-right') {
+                        this.customStyle['--margin-left'] = '35%';
+                        this.customStyle['--margin-right'] = '0%';
+                        this.animationConfig.entry[0].name = 'slide-from-bottom-animation';
+                        this.animationConfig.exit[1].name = 'slide-down-animation';
+                    }
+                    if (this.position === 'right') {
+                        this.customStyle['--margin-left'] = '0%';
+                        this.customStyle['--margin-right'] = '0%';
+                        this.animationConfig.entry[0].name = 'slide-from-right-animation';
+                        this.animationConfig.exit[1].name = 'slide-right-animation';
+                    }
+                    this.updateStyles();
+                });
+            }
+        });
+    </script>
+</dom-module>

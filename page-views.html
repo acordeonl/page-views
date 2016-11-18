@@ -1,0 +1,93 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../app-route/app-route.html" async >
+<link rel="import" href="../neon-animation/neon-animated-pages.html" async>
+<link rel="import" href="./view-layout.html">
+<!--
+
+Shows drop down menu (works on chrome)
+
+### Usage
+The list displayed in the drop down menu can be set as an attribute.
+
+    <drop-menu list-items='["first" ,"second"]'></drop-menu>
+
+For an overlayed drop menu:
+
+    <drop-menu overlay-menu list-items='["first" ,"second"]'></drop-menu>
+
+### Styling
+ Custom property | Description | Default
+----------------|-------------|----------
+`--item-background-color` | List item backround color | `#f1ecef`
+`--item-color` | List item color used for fonts | `#302f31`
+`--close-color` | Icon button hover color | `4775D1`
+`--content-background` | Drop menu's background color | `white`
+`--close-color` | Icon button hover color | `4775D1`
+`--icon-button` | Mixin applied the icon button | `{}`
+
+@demo demo/drop-menu-demo.html
+-->
+<dom-module id="page-views">
+    <template>
+        <style>
+            :host {
+                position: absolute;
+                @apply(--layout-fit);
+            }
+            neon-animated-pages[views] {
+                left: 0;
+                right: 0;
+                height: 100vh;
+                width: 100vw;
+                /*display: none;*/
+            }
+            :host[hidden] {
+                display: none;
+            }
+        </style>
+        <app-route route="{{route}}" pattern="{{page}}" data="{{routeData}}" tail="{{subroute}}"></app-route>
+        <neon-animated-pages views selected="[[subroute.path]]" on-neon-animation-finish='_closedView' attr-for-selected="name">
+            <content id="content"></content>
+            <div blank name="{{noView}}"></div>
+        </neon-animated-pages>
+    </template>
+    <script>
+        Polymer({
+            is: "page-views",
+            observers: ['_viewChanged(subroute.path)'],
+            behaviors: [],
+            properties: {
+                noView: {
+                    type: String
+                },
+                hidden: {
+                    type: Boolean,
+                    value: true,
+                    reflectToAttribute: true
+                }
+            },
+            ready: function () {
+                Polymer.RenderStatus.afterNextRender(this, function () {
+                    this.async(function () {
+                        var views = this.getContentChildren('#content') ;
+                        for (var i  = 0 ;i <views.length ; i ++ ) {
+                            while (!views[i]) {}
+                            views[i].exitUrl = this.noView;
+                        }
+                    }, 0);
+                    this.listen(this, 'closedView', '_closedView');
+                });
+            },
+            _viewChanged: function (view) {
+                if (view !== this.noView && view !== null) {
+                    this.hidden = false;
+                }
+            },
+            _closedView: function () {
+                if (this.subroute.path === this.noView) {
+                    this.hidden = true;
+                }
+            }
+        });
+    </script>
+</dom-module>
