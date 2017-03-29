@@ -1,7 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../app-route/app-route.html" async >
 <link rel="import" href="../neon-animation/neon-animated-pages.html" async>
-<link rel="import" href="./view-layout.html">
 <!--
 
 Shows drop down menu (works on chrome)
@@ -30,25 +29,25 @@ For an overlayed drop menu:
 <dom-module id="page-views">
     <template>
         <style>
-            :host {
-                position: absolute;
-                @apply(--layout-fit);
-            }
             neon-animated-pages[views] {
-                left: 0;
+                will-change:transform,opacity ;
+                position: absolute;
+                top: 0;
                 right: 0;
-                height: 100vh;
-                width: 100vw;
-                /*display: none;*/
+                bottom: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
             }
-            :host[hidden] {
+            .noDisplay{
                 display: none;
             }
         </style>
         <app-route route="{{route}}" pattern="{{page}}" data="{{routeData}}" tail="{{subroute}}"></app-route>
-        <neon-animated-pages views selected="[[subroute.path]]" on-neon-animation-finish='_closedView' attr-for-selected="name">
+        <neon-animated-pages class='noDisplay' views selected="[[selected]]" on-neon-animation-finish='_updateView' attr-for-selected="name">
             <content id="content"></content>
-            <div blank name="{{noView}}"></div>
+            <div blank name="{{noView}}">
+            </div>
         </neon-animated-pages>
     </template>
     <script>
@@ -57,35 +56,35 @@ For an overlayed drop menu:
             observers: ['_viewChanged(subroute.path)'],
             behaviors: [],
             properties: {
+                selected:{
+                    type:String,
+                    value:''
+                },
                 noView: {
                     type: String
-                },
-                hidden: {
-                    type: Boolean,
-                    value: true,
-                    reflectToAttribute: true
                 }
             },
-            ready: function () {
-                Polymer.RenderStatus.afterNextRender(this, function () {
-                    this.async(function () {
-                        var views = this.getContentChildren('#content') ;
-                        for (var i  = 0 ;i <views.length ; i ++ ) {
-                            while (!views[i]) {}
-                            views[i].exitUrl = this.noView;
-                        }
-                    }, 0);
-                    this.listen(this, 'closedView', '_closedView');
-                });
+            attached: function () {
+                var views = this.getContentChildren('#content') ;
+                for (var i  = 0 ;i <views.length ; i ++ ) {
+                    while (!views[i]) {}
+                    views[i].exitUrl = this.noView;
+                }
             },
             _viewChanged: function (view) {
-                if (view !== this.noView && view !== null) {
-                    this.hidden = false;
+                if(view===null)
+                    return ;
+                this.selected = view.substring(1) ;
+                if (this.selected !== this.noView && this.selected !== null) {
+                    this.$$('neon-animated-pages[views]').classList.remove('noDisplay') ;
                 }
             },
-            _closedView: function () {
-                if (this.subroute.path === this.noView) {
-                    this.hidden = true;
+            _updateView: function () {
+                if (this.subroute.path === '/'+this.noView) {
+                    this.$$('neon-animated-pages[views]').classList.add('noDisplay') ;
+                }
+                else{
+                    this.fire('update-view') ;
                 }
             }
         });

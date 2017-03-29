@@ -43,23 +43,24 @@ For an overlayed drop menu:
                 --margin-right: 0;
             }
             local-dom {
+                /*will-change:opacity ;*/
                 height: 100%;
                 width: 100%;
             }
-            paper-material {
+            paper-material[container] {
+                will-change:transform ;
                 height: var(--height);
                 width: var(--width);
                 margin-left: var(--margin-left);
                 margin-right: var(--margin-right);
                 background-color: var(--content-background);
-                overflow: hidden;
             }
-            div[closePage] {
+            [closePage] {
                 height: 100%;
                 width: 100%;
+                position:absolute;
                 background-color: var(--content-background);
                 opacity: 0.6;
-                position: absolute;
                 top: 0;
                 left: 0;
             }
@@ -74,13 +75,25 @@ For an overlayed drop menu:
                 margin-right: 0;
                 border-radius: 0;
             }
+            [content]{
+                height:100%;
+                width:100%;
+            }
+            .animatableOpacity {
+                transition: opacity 0.3s cubic-bezier(0,0,0.3,1);
+            }
+            .noDisplay{
+                display:none;
+            }
         </style>
         <!-- local DOM -->
         <app-route route="{{route}}" pattern="/:view" data="{{routeData}}" tail="{{subroute}}" query-params="{{queryParams}}"></app-route>
         <local-dom mobile="{{mobile}}" tablet="{{tablet}}" laptop="{{laptop}}" class$={{position}}>
             <div closePage on-click="_exit"></div>
             <paper-material container elevation="4">
-                <content ></content>
+                <div content>
+                    <content ></content>
+                </div>
             </paper-material>
         </local-dom>
     </template>
@@ -88,8 +101,12 @@ For an overlayed drop menu:
         Polymer({
             is: "view-layout",
             observers: [],
+            listeners:{'close':'_exit'},
             behaviors: [Polymer.NeonAnimationRunnerBehavior],
             properties: {
+                displayAsyncHandle:{
+                    type:Number
+                },
                 height: {
                     type: String
                 },
@@ -112,14 +129,14 @@ For an overlayed drop menu:
                                     name: 'slide-from-top-animation',
                                     node: this.$$('paper-material[container]'),
                                     timing: {
-                                        duration: 500
+                                        duration: 400
                                     }
                                 }
                             ],
                             'exit': [
                                 {
                                     name: 'fade-out-animation',
-                                    node: this
+                                    node: this.$$('LOCAL-DOM')
                                 }, {
                                     name: 'slide-up-animation',
                                     node: this.$$('paper-material[container]'),
@@ -132,65 +149,81 @@ For an overlayed drop menu:
                     }
                 }
             },
-            _exit: function () {
+            onTransitionEnd : function(){
+                // this.canClose = true ;
+                // this.$$('[content]').removeEventListener('transitionend', this.onTransitionEnd);
+            },
+            displayContent: function(){
+                // this.canClose = false ;
+                // this.$$('[content]').classList.remove('noDisplay') ;
+                // this.$$('[content]').classList.add('animatableOpacity') ;
+                // this.$$('[content]').addEventListener('transitionend', this.onTransitionEnd);
+                // console.timeStamp('repaint') ;
+                // this.$$('[content]').style.display='none';
+                // this.$$('[content]').offsetHeight=this.$$('[content]').offsetHeight; // no need to store this anywhere, the reference is enough
+                // this.$$('[content]').style.display='';
+            },
+            _exit: function (e) {
+                e.stopPropagation();
+                e.preventDefault() ;
+                // this.cancelAsync(this.displayAsyncHandle) ;
+                // this.$$('[content]').classList.remove('animatableOpacity') ;
+                // this.$$('[content]').classList.add('noDisplay') ;
                 this.set('route.path', this.exitUrl);
-                this.queryParams={} ;
             },
             ready: function () {
-                Polymer.RenderStatus.afterNextRender(this, function () {
-                    this.listen(this, 'close', '_exit');
-                    this.customStyle['--height'] = this.height;
-                    this.customStyle['--width'] = this.width;
-                    if (this.position === 'top-right') {
-                        this.customStyle['--margin-left'] = '35%';
-                        this.customStyle['--margin-right'] = '0%';
-                        this.animationConfig.entry[0].name = 'slide-from-top-animation';
-                        this.animationConfig.exit[1].name = 'slide-up-animation';
-                    }
-                    if (this.position === 'top') {
-                        this.customStyle['--margin-left'] = '0%';
-                        this.customStyle['--margin-right'] = '0%';
-                        this.animationConfig.entry[0].name = 'slide-from-top-animation';
-                        this.animationConfig.exit[1].name = 'slide-up-animation';
-                    }
-                    if (this.position === 'top-left') {
-                        this.customStyle['--margin-left'] = '0%';
-                        this.customStyle['--margin-right'] = '40%';
-                        this.animationConfig.entry[0].name = 'slide-from-top-animation';
-                        this.animationConfig.exit[1].name = 'slide-up-animation';
-                    }
-                    if (this.position === 'left') {
-                        this.customStyle['--margin-left'] = '0%';
-                        this.customStyle['--margin-right'] = '0%';
-                        this.animationConfig.entry[0].name = 'slide-from-left-animation';
-                        this.animationConfig.exit[1].name = 'slide-left-animation';
-                    }
-                    if (this.position === 'bottom-left') {
-                        this.customStyle['--margin-left'] = '0%';
-                        this.customStyle['--margin-right'] = '40%';
-                        this.animationConfig.entry[0].name = 'slide-from-bottom-animation';
-                        this.animationConfig.exit[1].name = 'slide-down-animation';
-                    }
-                    if (this.position === 'bottom') {
-                        this.customStyle['--margin-left'] = '0%';
-                        this.customStyle['--margin-right'] = '0%';
-                        this.animationConfig.entry[0].name = 'scale-up-animation';
-                        this.animationConfig.exit[1].name = 'scale-down-animation';
-                    }
-                    if (this.position === 'bottom-right') {
-                        this.customStyle['--margin-left'] = '35%';
-                        this.customStyle['--margin-right'] = '0%';
-                        this.animationConfig.entry[0].name = 'slide-from-bottom-animation';
-                        this.animationConfig.exit[1].name = 'slide-down-animation';
-                    }
-                    if (this.position === 'right') {
-                        this.customStyle['--margin-left'] = '0%';
-                        this.customStyle['--margin-right'] = '0%';
-                        this.animationConfig.entry[0].name = 'slide-from-right-animation';
-                        this.animationConfig.exit[1].name = 'slide-right-animation';
-                    }
-                    this.updateStyles();
-                });
+                this.onTransitionEnd = this.onTransitionEnd.bind(this);
+                this.customStyle['--height'] = this.height;
+                this.customStyle['--width'] = this.width;
+                if (this.position === 'top-right') {
+                    this.customStyle['--margin-left'] = '35%';
+                    this.customStyle['--margin-right'] = '0%';
+                    this.animationConfig.entry[0].name = 'slide-from-top-animation';
+                    this.animationConfig.exit[1].name = 'slide-up-animation';
+                }
+                if (this.position === 'top') {
+                    this.customStyle['--margin-left'] = '0%';
+                    this.customStyle['--margin-right'] = '0%';
+                    this.animationConfig.entry[0].name = 'slide-from-top-animation';
+                    this.animationConfig.exit[1].name = 'slide-up-animation';
+                }
+                if (this.position === 'top-left') {
+                    this.customStyle['--margin-left'] = '0%';
+                    this.customStyle['--margin-right'] = '40%';
+                    this.animationConfig.entry[0].name = 'slide-from-top-animation';
+                    this.animationConfig.exit[1].name = 'slide-up-animation';
+                }
+                if (this.position === 'left') {
+                    this.customStyle['--margin-left'] = '0%';
+                    this.customStyle['--margin-right'] = '0%';
+                    this.animationConfig.entry[0].name = 'slide-from-left-animation';
+                    this.animationConfig.exit[1].name = 'slide-left-animation';
+                }
+                if (this.position === 'bottom-left') {
+                    this.customStyle['--margin-left'] = '0%';
+                    this.customStyle['--margin-right'] = '40%';
+                    this.animationConfig.entry[0].name = 'slide-from-bottom-animation';
+                    this.animationConfig.exit[1].name = 'slide-down-animation';
+                }
+                if (this.position === 'bottom') {
+                    this.customStyle['--margin-left'] = '0%';
+                    this.customStyle['--margin-right'] = '0%';
+                    this.animationConfig.entry[0].name = 'scale-up-animation';
+                    this.animationConfig.exit[1].name = 'scale-down-animation';
+                }
+                if (this.position === 'bottom-right') {
+                    this.customStyle['--margin-left'] = '35%';
+                    this.customStyle['--margin-right'] = '0%';
+                    this.animationConfig.entry[0].name = 'slide-from-bottom-animation';
+                    this.animationConfig.exit[1].name = 'slide-down-animation';
+                }
+                if (this.position === 'right') {
+                    this.customStyle['--margin-left'] = '0%';
+                    this.customStyle['--margin-right'] = '0%';
+                    this.animationConfig.entry[0].name = 'slide-from-right-animation';
+                    this.animationConfig.exit[1].name = 'slide-right-animation';
+                }
+                this.updateStyles();
             }
         });
     </script>
