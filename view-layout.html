@@ -6,6 +6,7 @@
     <link rel="import" href="../paper-material/paper-material.html" async>
     <link rel="import" href="../local-dom/local-dom.html">
     <link rel="import" href="./position-css.html">
+    <link rel="import" href="../base-layout/base-layout.html">
 </imports>
 <!--
 
@@ -48,7 +49,7 @@ For an overlayed drop menu:
                 width: 100%;
             }
             paper-material[container] {
-                will-change:transform ;
+                /*will-change:transform ;*/
                 height: var(--height);
                 width: var(--width);
                 margin-left: var(--margin-left);
@@ -87,7 +88,6 @@ For an overlayed drop menu:
             }
         </style>
         <!-- local DOM -->
-        <app-route route="{{route}}" pattern="/:view" data="{{routeData}}" tail="{{subroute}}" query-params="{{queryParams}}"></app-route>
         <local-dom mobile="{{mobile}}" tablet="{{tablet}}" laptop="{{laptop}}" class$={{position}}>
             <div closePage on-click="_exit"></div>
             <paper-material container elevation="4">
@@ -101,7 +101,7 @@ For an overlayed drop menu:
         Polymer({
             is: "view-layout",
             observers: [],
-            listeners:{'close':'_exit'},
+            listeners:{'icon-click':'_iconAction'},
             behaviors: [Polymer.NeonAnimationRunnerBehavior],
             properties: {
                 displayAsyncHandle:{
@@ -112,10 +112,6 @@ For an overlayed drop menu:
                 },
                 width: {
                     type: String
-                },
-                exitUrl: {
-                    type: String,
-                    value: "test"
                 },
                 closing:{
                     type:Boolean,
@@ -136,7 +132,10 @@ For an overlayed drop menu:
                             'exit': [
                                 {
                                     name: 'fade-out-animation',
-                                    node: this.$$('LOCAL-DOM')
+                                    node: this.$$('LOCAL-DOM'),
+                                    timing: {
+                                        duration: 400
+                                    }
                                 }, {
                                     name: 'slide-up-animation',
                                     node: this.$$('paper-material[container]'),
@@ -149,30 +148,15 @@ For an overlayed drop menu:
                     }
                 }
             },
-            onTransitionEnd : function(){
-                // this.canClose = true ;
-                // this.$$('[content]').removeEventListener('transitionend', this.onTransitionEnd);
+            _iconAction: function (e) {
+                if (e.detail.which === 'exitIcon') {
+                    this._exit() ;
+                }
             },
-            displayContent: function(){
-                // this.canClose = false ;
-                // this.$$('[content]').classList.remove('noDisplay') ;
-                // this.$$('[content]').classList.add('animatableOpacity') ;
-                // this.$$('[content]').addEventListener('transitionend', this.onTransitionEnd);
-                // console.timeStamp('repaint') ;
-                // this.$$('[content]').style.display='none';
-                // this.$$('[content]').offsetHeight=this.$$('[content]').offsetHeight; // no need to store this anywhere, the reference is enough
-                // this.$$('[content]').style.display='';
-            },
-            _exit: function (e) {
-                e.stopPropagation();
-                e.preventDefault() ;
-                // this.cancelAsync(this.displayAsyncHandle) ;
-                // this.$$('[content]').classList.remove('animatableOpacity') ;
-                // this.$$('[content]').classList.add('noDisplay') ;
-                this.set('route.path', this.exitUrl);
+            _exit: function(){
+                this.fire('close-view');
             },
             ready: function () {
-                this.onTransitionEnd = this.onTransitionEnd.bind(this);
                 this.customStyle['--height'] = this.height;
                 this.customStyle['--width'] = this.width;
                 if (this.position === 'top-right') {

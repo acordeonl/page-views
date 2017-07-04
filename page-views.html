@@ -30,7 +30,7 @@ For an overlayed drop menu:
     <template>
         <style>
             neon-animated-pages[views] {
-                will-change:transform,opacity ;
+                will-change:transform ;
                 position: absolute;
                 top: 0;
                 right: 0;
@@ -82,9 +82,6 @@ For an overlayed drop menu:
             _updateView: function () {
                 if (this.subroute.path === '/'+this.noView) {
                     this.$$('neon-animated-pages[views]').classList.add('noDisplay') ;
-                }
-                else{
-                    this.fire('update-view') ;
                 }
             }
         });
