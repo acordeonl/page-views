@@ -104,6 +104,9 @@ For an overlayed drop menu:
             listeners:{'icon-click':'_iconAction'},
             behaviors: [Polymer.NeonAnimationRunnerBehavior],
             properties: {
+                id:{
+                    type:String
+                },
                 displayAsyncHandle:{
                     type:Number
                 },
@@ -154,7 +157,7 @@ For an overlayed drop menu:
                 }
             },
             _exit: function(){
-                this.fire('close-view');
+                this.fire('close-view',{id:this.id});
             },
             ready: function () {
                 this.customStyle['--height'] = this.height;
