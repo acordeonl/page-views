@@ -1,6 +1,5 @@
 <imports >
     <link rel="import" href="../polymer/polymer.html">
-    <link rel="import" href="../app-route/app-route.html" async>
     <link rel="import" href="../neon-animation/neon-animation-runner-behavior.html">
     <link rel="import" href="../neon-animation/neon-animations.html">
     <link rel="import" href="../paper-material/paper-material.html" async>
@@ -107,18 +106,11 @@ For an overlayed drop menu:
                 id:{
                     type:String
                 },
-                displayAsyncHandle:{
-                    type:Number
-                },
                 height: {
                     type: String
                 },
                 width: {
                     type: String
-                },
-                closing:{
-                    type:Boolean,
-                    value:false
                 },
                 animationConfig: {
                     value: function () {
